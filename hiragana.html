@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ランダムひらがな生成器</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/resources/dojo.css">
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.14.1/dijit/themes/claro/claro.css">
+<style>
+#overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #FFF;
+    z-index: 2;
+}
+#overlay span {
+    position: absolute;
+    top: 1em;
+    left: 1em;
+}
+#container {
+    margin: 0;
+    padding: 1em;
+    max-width: 500px;
+}
+#title {
+    margin: 0;
+    padding-bottom: 1em;
+}
+#wordText {
+    box-sizing: border-box;
+    padding: .5em;
+    height: auto;
+}
+#control {
+    text-align: right;
+    user-select: none;
+}
+#control .dijitButton {
+    padding: .5em 0 .9em 0;
+}
+#control .dijitButton .dijitButtonNode {
+    padding: 4px 8px 6px 8px;
+}
+#control .dijitSliderDecrementIconH,
+#control .dijitSliderIncrementIconH {
+    padding: 6px 4px;
+}
+#control .dijitSliderDecrementIconH {
+    background-position: -353px 50%;
+}
+#control .dijitSliderIncrementIconH {
+    background-position: -247px 50%;
+}
+#lengthContainer {
+    padding: 5px 3px;
+}
+</style>
+</head>
+<body class="claro">
+<div id="container">
+    <div id="overlay"><span>Loading...</span></div>
+    <h1 id="title">ランダムひらがな生成器</h1>
+    <textarea id="wordText" data-dojo-type="dijit/form/SimpleTextarea" rows="3" readonly></textarea>
+    <div id="control">
+        <button id="regButton" data-dojo-type="dijit/form/Button">再生成</button>
+        <button id="copyButton" data-dojo-type="dijit/form/Button">コピー</button>
+        <div id="slider" data-dojo-type="dijit/form/HorizontalSlider"
+            data-dojo-props="value:32, minimum:1, maximum:64, discreteValues:64,
+                intermediateChanges:true"></div>
+        <div id="lengthContainer">長さ：<span id="length"></span></div>
+    </div>
+</div>
+<script>
+var dojoConfig = {
+    async: true
+};
+</script>
+<script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script>
+<script>
+require([
+    'dojo/_base/fx',
+    'dojo/dom',
+    'dojo/dom-style',
+    'dojo/parser',
+    'dojo/ready',
+    'dijit/registry',
+    // 変数ここまで
+    'dojo/domReady!',
+], function(fx, dom, domStyle, parser, ready, registry) {
+    /**
+     * 全平仮名を含む文字列を生成
+     * @returns {string} 全平仮名を含む文字列
+     */
+    function genHiragana() {
+        var hiraganaList = [];
+        var fromCode = 'ぁ'.charCodeAt(0);
+        var toCode = 'ん'.charCodeAt(0) + 1;
+        for (var i = fromCode; i < toCode; i++) {
+            hiraganaList.push(String.fromCharCode(i));
+        }
+        hiraganaList.push('ー');
+        return hiraganaList.join('');
+    }
+
+    // ウィジェットの準備
+    parser.parse();
+    ready(function() {
+        // オーバーレイの解除
+        var overlay = dom.byId('overlay');
+        fx.fadeOut({
+            node: overlay,
+            duration: 200,
+            onEnd: function() {
+                domStyle.set(overlay, 'display', 'none');
+            }
+        }).play();
+
+        var hiragana = genHiragana();
+        var wordText = registry.byId('wordText');
+        var slider = registry.byId('slider');
+
+        /**
+         * ランダム平仮名文字列を再生成する。
+         */
+        function regenerate() {
+            // スライダーの設定値を取得
+            var length = slider.get('value');
+            // 表示を更新
+            dom.byId('length').innerHTML = length;
+            // 設定値に対応する長さのランダム文字列を生成
+            var result = [];
+            for (var i = 0; i < length; i++) {
+                var index = Math.floor(Math.random() * hiragana.length);
+                result.push(hiragana[index]);
+            }
+            // 生成したランダム文字列を設定
+            wordText.set('value', result.join(''));
+        }
+
+        // イベントの登録
+        slider.on('change', regenerate);
+        registry.byId('regButton').on('click', regenerate);
+        registry.byId('copyButton').on('click', function() {
+                wordText.domNode.select();
+                document.execCommand('copy');
+        });
+
+        // 初回生成
+        regenerate();
+    });
+});
+</script>
+</body>
+</html>
+
