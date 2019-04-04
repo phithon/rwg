@@ -33,7 +33,6 @@
 }
 #wordText {
     box-sizing: border-box;
-    padding: .5em;
     height: auto;
 }
 #control {
@@ -145,9 +144,15 @@ require([
         // イベントの登録
         slider.on('change', regenerate);
         registry.byId('regButton').on('click', regenerate);
-        registry.byId('copyButton').on('click', function() {
-                wordText.domNode.select();
-                document.execCommand('copy');
+        var textNode = wordText.domNode;
+        var copyButton = registry.byId('copyButton');
+        copyButton.on('click', function() {
+            // 文字列をコピー
+            textNode.selectionStart = 0;
+            textNode.selectionEnd = wordText.domNode.value.length;
+            textNode.focus();
+            document.execCommand('copy');
+            copyButton.focus();
         });
 
         // 初回生成
