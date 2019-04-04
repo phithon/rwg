@@ -144,10 +144,10 @@ require([
         // イベントの登録
         slider.on('change', regenerate);
         registry.byId('regButton').on('click', regenerate);
+        // 文字列をコピー
         var textNode = wordText.domNode;
         var copyButton = registry.byId('copyButton');
         copyButton.on('click', function() {
-            // 文字列をコピー
             textNode.selectionStart = 0;
             textNode.selectionEnd = wordText.domNode.value.length;
             textNode.focus();
