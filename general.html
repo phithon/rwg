@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Random Word Generator</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/resources/dojo.css">
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dijit/themes/claro/claro.css">
+<style>
+#wordText, #symbolInput {
+    font-size: 16px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+#overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #FFF;
+    z-index: 2;
+}
+#overlay span {
+    position: absolute;
+    top: 1em;
+    left: 1em;
+}
+#container {
+    margin: 0;
+    padding: 1em;
+    max-width: 500px;
+}
+#title {
+    margin: 0;
+    padding-bottom: 1em;
+}
+#wordText {
+    box-sizing: border-box;
+    height: auto;
+}
+#control {
+    text-align: right;
+    user-select: none;
+}
+#control .dijitButton {
+    padding: .5em 0 .9em 0;
+}
+#control .dijitButton .dijitButtonNode {
+    padding: 4px 8px 6px 8px;
+}
+#control .dijitSliderDecrementIconH,
+#control .dijitSliderIncrementIconH {
+    padding: 6px 4px;
+}
+#control .dijitSliderDecrementIconH {
+    background-position: -353px 50%;
+}
+#control .dijitSliderIncrementIconH {
+    background-position: -247px 50%;
+}
+#lengthContainer {
+    padding: 5px 3px;
+}
+#group {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+#group li {
+    padding: 5px 2px;
+}
+#group li label {
+    user-select: none;
+}
+#group li .dijitCheckBox {
+    margin-right: 3px;
+    vertical-align: text-bottom;
+}
+#symbolLabel {
+    margin-right: .5em;
+}
+</style>
+</head>
+<body class="claro">
+<div id="container">
+    <div id="overlay"><span>Loading...</span></div>
+    <h1 id="title">Random Word Generator</h1>
+    <textarea id="wordText" data-dojo-type="dijit/form/SimpleTextarea" rows="3" readonly></textarea>
+    <form id="form" data-dojo-type="dijit/form/Form" method="POST">
+        <div id="control">
+            <button id="regButton" data-dojo-type="dijit/form/Button">Regenerate</button>
+            <button id="copyButton" data-dojo-type="dijit/form/Button">Copy</button>
+            <div id="slider" name="slider" data-dojo-type="dijit/form/HorizontalSlider"
+                data-dojo-props="value:32, minimum:4, maximum:64, discreteValues:61,
+                    intermediateChanges:true"></div>
+            <div id="lengthContainer">Length:<span id="length"></span></div>
+        </div>
+        <ul id="group">
+            <li><label><input id="digitCheck" name="group" value="d"
+                data-dojo-type="dijit/form/CheckBox" checked>Digits</label></li>
+            <li><label><input id="lowerCheck" name="group" value="l"
+                data-dojo-type="dijit/form/CheckBox" checked>Lower Case Letters</label></li>
+            <li><label><input id="upperCheck" name="group" value="u"
+                data-dojo-type="dijit/form/CheckBox" checked>Upper Case Letters</label></li>
+            <li><label id="symbolLabel"><input id="symbolCheck" name="group" value="s"
+                data-dojo-type="dijit/form/CheckBox" checked>Symbols and choose from</label
+                    ><input id="symbolInput" name="allowedSymbols" data-dojo-type="dijit/form/TextBox"
+                        data-dojo-props="placeHolder:'()_@!?...'"></li>
+        </ul>
+    </form>
+</div>
+<script>
+var dojoConfig = {
+    async: true
+};
+</script>
+<script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script>
+<script>
+require([
+    'dojo/_base/array',
+    'dojo/_base/fx',
+    'dojo/dom',
+    'dojo/dom-style',
+    'dojo/parser',
+    'dojo/ready',
+    'dijit/registry',
+    // modules below are not referenced by variables
+    'dojo/domReady!',
+], function(array, fx, dom, domStyle, parser, ready, registry) {
+    var DEFAULT_SYMBOLS = '!#%&()*+,-.:<=>?@[]^_{}~';
+
+    /**
+     * Generate ranged string.
+     * @param {string} fromChar first character
+     * @param {string} toChar last character
+     * @returns {string} ranged string
+     */
+    function genRangedString(fromChar, toChar) {
+        var resultList = [];
+        var fromCode = fromChar.charCodeAt(0);
+        var toCode = toChar.charCodeAt(0) + 1;
+        for (var i = fromCode; i < toCode; i++) {
+            resultList.push(String.fromCharCode(i));
+        }
+        return resultList.join('');
+    }
+
+    // prepare widgets
+    parser.parse();
+    ready(function() {
+        // init ui
+        var form = registry.byId('form');
+        var wordText = registry.byId('wordText');
+        var slider = registry.byId('slider');
+        var symbolCheck = registry.byId('symbolCheck');
+        var symbolInput = registry.byId('symbolInput');
+        symbolInput.set('placeHolder', DEFAULT_SYMBOLS);
+
+        // hide overlay
+        var overlay = dom.byId('overlay');
+        fx.fadeOut({
+            node: overlay,
+            duration: 200,
+            onEnd: function() {
+                domStyle.set(overlay, 'display', 'none');
+            }
+        }).play();
+
+        /**
+         * Regenerate random word.
+         */
+        function regenerate() {
+            // get value
+            var value = form.get('value');
+            var length = value.slider;
+            // update subsequent ui
+            dom.byId('length').innerHTML = length;
+            registry.byId('symbolInput').set('disabled', !symbolCheck.get('checked'));
+
+            // prepare character pool
+            var groupList = [];
+            // digits
+            if (array.indexOf(value.group, 'd') !== -1) {
+                groupList.push(genRangedString('0', '9'));
+            }
+            // lower case letters
+            if (array.indexOf(value.group, 'l') !== -1) {
+                groupList.push(genRangedString('a', 'z'));
+            }
+            // upper case letters
+            if (array.indexOf(value.group, 'u') !== -1) {
+                groupList.push(genRangedString('A', 'Z'));
+            }
+            // symbols
+            if (array.indexOf(value.group, 's') !== -1) {
+                var allowedSymbols = (value.allowedSymbols || '').replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+                if (allowedSymbols) {
+                    groupList.push(allowedSymbols);
+                } else {
+                    groupList.push();
+                }
+            }
+            var charPool = groupList.join('');
+
+            // generate random word
+            var result = [];
+            for (var i = 0; i < length; i++) {
+                var index = Math.floor(Math.random() * charPool.length);
+                result.push(charPool[index]);
+            }
+            // apply into random word textarea
+            wordText.set('value', result.join(''));
+        }
+
+        // register events
+        // suppress form submit
+        form.on('submit', function() {return false;});
+        slider.on('change', regenerate);
+        registry.byId('regButton').on('click', regenerate);
+        registry.byId('digitCheck').on('change', regenerate);
+        registry.byId('lowerCheck').on('change', regenerate);
+        registry.byId('upperCheck').on('change', regenerate);
+        symbolCheck.on('change', regenerate);
+        symbolInput.on('change', regenerate);
+        // copy
+        var textNode = wordText.domNode;
+        var copyButton = registry.byId('copyButton');
+        copyButton.on('click', function() {
+            textNode.selectionStart = 0;
+            textNode.selectionEnd = wordText.domNode.value.length;
+            textNode.focus();
+            document.execCommand('copy');
+            copyButton.focus();
+        });
+
+        // initial generation
+        regenerate();
+    });
+});
+</script>
+</body>
+</html>
+
