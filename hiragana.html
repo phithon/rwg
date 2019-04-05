@@ -157,6 +157,8 @@ require([
             selectWholeText();
             textNode.focus();
             document.execCommand('copy');
+            // テキストの選択を解除
+            textNode.selectionStart = textNode.selectionEnd;
             copyButton.focus();
         });
 

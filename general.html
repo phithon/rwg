@@ -242,6 +242,8 @@ require([
             selectWholeText();
             textNode.focus();
             document.execCommand('copy');
+            // release selection
+            textNode.selectionStart = textNode.selectionEnd;
             copyButton.focus();
         });
 
