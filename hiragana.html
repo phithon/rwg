@@ -150,13 +150,19 @@ require([
             textNode.selectionStart = 0;
             textNode.selectionEnd = wordText.domNode.value.length;
         }
-        wordText.on('click', selectWholeText);
+        wordText.on('click', function(evt) {
+            // iOSでキーボードが出て来るのを防ぐ
+            evt.preventDefault();
+            selectWholeText();
+        });
         // 文字列をコピー
         var copyButton = registry.byId('copyButton');
         copyButton.on('click', function() {
             selectWholeText();
             textNode.focus();
             document.execCommand('copy');
+            // テキストの選択を解除
+            textNode.selectionStart = textNode.selectionEnd;
             copyButton.focus();
         });
 
