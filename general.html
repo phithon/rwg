@@ -235,7 +235,11 @@ require([
             textNode.selectionStart = 0;
             textNode.selectionEnd = wordText.domNode.value.length;
         }
-        wordText.on('click', selectWholeText);
+        wordText.on('click', function(evt) {
+            // prevent iOS to show keyboard
+            evt.preventDefault();
+            selectWholeText();
+        });
         // copy function
         var copyButton = registry.byId('copyButton');
         copyButton.on('click', function() {
