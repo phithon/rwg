@@ -191,7 +191,7 @@ require([
             var length = value.slider;
             // update subsequent ui
             dom.byId('length').innerHTML = length;
-            registry.byId('symbolInput').set('disabled', !symbolCheck.get('checked'));
+            symbolInput.set('disabled', !symbolCheck.get('checked'));
 
             // prepare character pool
             var groupList = [];
