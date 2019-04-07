@@ -11,6 +11,7 @@
 .wordDisplay {
     font-size: 16px;
     font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    word-break: break-all;
 }
 #overlay {
     position: absolute;
@@ -47,7 +48,7 @@
     padding: .5em 0 .9em 0;
 }
 #control .dijitButton .dijitButtonNode {
-    padding: 4px 8px 6px 8px;
+    padding: 4px 8px 6px;
 }
 #control .dijitSliderDecrementIconH,
 #control .dijitSliderIncrementIconH {
@@ -68,22 +69,24 @@
     list-style-type: none;
 }
 #group li {
-    padding: 5px 2px;
+    padding: 0 2px;
 }
 #group li label {
     user-select: none;
+    display: inline-block;
+    padding: 8px 0;
 }
 #group li .dijitCheckBox {
     margin-right: 3px;
     vertical-align: text-bottom;
 }
-#symbolLabel {
+#group li.listInput label {
     display: inline-block;
-    margin: 0 -13px 8px 0;
+    margin-right: -13px;
 }
-div.dijitTextBox.wordDisplay {
-    margin: -3px 0 0 18px;
-    vertical-align: top;
+#group li.listInput .wordDisplay {
+    margin-top: -5px;
+    margin-left: 18px;
 }
 </style>
 </head>
@@ -109,9 +112,13 @@ div.dijitTextBox.wordDisplay {
                 data-dojo-type="dijit/form/CheckBox" checked>Lower Case Letters</label></li>
             <li><label><input id="upperCheck" name="group" value="u"
                 data-dojo-type="dijit/form/CheckBox" checked>Upper Case Letters</label></li>
-            <li><label id="symbolLabel"><input id="symbolCheck" name="group" value="s"
+            <li class="listInput"><label><input id="symbolCheck" name="group" value="s"
                 data-dojo-type="dijit/form/CheckBox" checked>Symbols and choose from</label
                     ><input id="symbolInput" class="wordDisplay" name="allowedSymbols"
+                        data-dojo-type="dijit/form/TextBox"></li>
+            <li class="listInput"><label><input id="excludeCheck"
+                data-dojo-type="dijit/form/CheckBox">Exclude characters in</label
+                    ><input id="excludeInput" class="wordDisplay" name="exclude" disabled
                         data-dojo-type="dijit/form/TextBox"></li>
         </ul>
     </form>
@@ -162,6 +169,8 @@ require([
         var symbolCheck = registry.byId('symbolCheck');
         var symbolInput = registry.byId('symbolInput');
         symbolInput.set('placeHolder', DEFAULT_SYMBOLS);
+        var excludeCheck = registry.byId('excludeCheck');
+        var excludeInput = registry.byId('excludeInput');
 
         // hide overlay
         var overlay = dom.byId('overlay');
@@ -182,7 +191,6 @@ require([
             var length = value.slider;
             // update subsequent ui
             dom.byId('length').innerHTML = length;
-            registry.byId('symbolInput').set('disabled', !symbolCheck.get('checked'));
 
             // prepare character pool
             var groupList = [];
@@ -208,6 +216,10 @@ require([
                 }
             }
             var charPool = groupList.join('');
+            // exclude specified characters
+            array.forEach((value.exclude || '').split(''), function(c) {
+                charPool = charPool.replace(c, '');
+            });
 
             // generate random word
             var result = [];
@@ -222,6 +234,14 @@ require([
         // register events
         // suppress form submit
         form.on('submit', function() {return false;});
+        // change input state
+        symbolCheck.on('change', function() {
+            symbolInput.set('disabled', !symbolCheck.get('checked'));
+        });
+        excludeCheck.on('change', function() {
+            excludeInput.set('disabled', !excludeCheck.get('checked'));
+        });
+        // regenerate on change
         slider.on('change', regenerate);
         registry.byId('regButton').on('click', regenerate);
         registry.byId('digitCheck').on('change', regenerate);
@@ -229,6 +249,8 @@ require([
         registry.byId('upperCheck').on('change', regenerate);
         symbolCheck.on('change', regenerate);
         symbolInput.on('change', regenerate);
+        excludeCheck.on('change', regenerate);
+        excludeInput.on('change', regenerate);
         // select function
         var textNode = wordText.domNode;
         function selectWholeText() {
