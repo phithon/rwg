@@ -120,7 +120,7 @@ div.dijitTextBox.wordDisplay {
                         data-dojo-type="dijit/form/TextBox"></li>
             <li class="listInput"><label><input id="excludeCheck"
                 data-dojo-type="dijit/form/CheckBox">Exclude characters in</label
-                    ><input id="excludeInput" class="wordDisplay" name="exclude"
+                    ><input id="excludeInput" class="wordDisplay" name="exclude" disabled
                         data-dojo-type="dijit/form/TextBox"></li>
         </ul>
     </form>
@@ -193,8 +193,6 @@ require([
             var length = value.slider;
             // update subsequent ui
             dom.byId('length').innerHTML = length;
-            symbolInput.set('disabled', !symbolCheck.get('checked'));
-            excludeInput.set('disabled', !excludeCheck.get('checked'));
 
             // prepare character pool
             var groupList = [];
@@ -238,6 +236,14 @@ require([
         // register events
         // suppress form submit
         form.on('submit', function() {return false;});
+        // change input state
+        symbolCheck.on('change', function() {
+            symbolInput.set('disabled', !symbolCheck.get('checked'));
+        });
+        excludeCheck.on('change', function() {
+            excludeInput.set('disabled', !excludeCheck.get('checked'));
+        });
+        // regenerate on change
         slider.on('change', regenerate);
         registry.byId('regButton').on('click', regenerate);
         registry.byId('digitCheck').on('change', regenerate);
