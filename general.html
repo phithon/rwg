@@ -11,6 +11,7 @@
 .wordDisplay {
     font-size: 16px;
     font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    word-break: break-all;
 }
 #overlay {
     position: absolute;
@@ -47,7 +48,7 @@
     padding: .5em 0 .9em 0;
 }
 #control .dijitButton .dijitButtonNode {
-    padding: 4px 8px 6px 8px;
+    padding: 4px 8px 6px;
 }
 #control .dijitSliderDecrementIconH,
 #control .dijitSliderIncrementIconH {
@@ -79,14 +80,11 @@
     margin-right: 3px;
     vertical-align: text-bottom;
 }
-#group li.listInput {
-    padding-bottom: 0;
-}
 #group li.listInput label {
     display: inline-block;
     margin-right: -13px;
 }
-div.dijitTextBox.wordDisplay {
+#group li.listInput .wordDisplay {
     margin-top: -5px;
     margin-left: 18px;
 }
