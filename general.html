@@ -68,22 +68,27 @@
     list-style-type: none;
 }
 #group li {
-    padding: 5px 2px;
+    padding: 0 2px;
 }
 #group li label {
     user-select: none;
+    display: inline-block;
+    padding: 8px 0;
 }
 #group li .dijitCheckBox {
     margin-right: 3px;
     vertical-align: text-bottom;
 }
-#symbolLabel {
+#group li.listInput {
+    padding-bottom: 0;
+}
+#group li.listInput label {
     display: inline-block;
-    margin: 0 -13px 8px 0;
+    margin-right: -13px;
 }
 div.dijitTextBox.wordDisplay {
-    margin: -3px 0 0 18px;
-    vertical-align: top;
+    margin-top: -5px;
+    margin-left: 18px;
 }
 </style>
 </head>
@@ -109,7 +114,7 @@ div.dijitTextBox.wordDisplay {
                 data-dojo-type="dijit/form/CheckBox" checked>Lower Case Letters</label></li>
             <li><label><input id="upperCheck" name="group" value="u"
                 data-dojo-type="dijit/form/CheckBox" checked>Upper Case Letters</label></li>
-            <li><label id="symbolLabel"><input id="symbolCheck" name="group" value="s"
+            <li class="listInput"><label><input id="symbolCheck" name="group" value="s"
                 data-dojo-type="dijit/form/CheckBox" checked>Symbols and choose from</label
                     ><input id="symbolInput" class="wordDisplay" name="allowedSymbols"
                         data-dojo-type="dijit/form/TextBox"></li>
