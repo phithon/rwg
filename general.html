@@ -171,6 +171,8 @@ require([
         var symbolCheck = registry.byId('symbolCheck');
         var symbolInput = registry.byId('symbolInput');
         symbolInput.set('placeHolder', DEFAULT_SYMBOLS);
+        var excludeCheck = registry.byId('excludeCheck');
+        var excludeInput = registry.byId('excludeInput');
 
         // hide overlay
         var overlay = dom.byId('overlay');
@@ -192,6 +194,7 @@ require([
             // update subsequent ui
             dom.byId('length').innerHTML = length;
             symbolInput.set('disabled', !symbolCheck.get('checked'));
+            excludeInput.set('disabled', !excludeCheck.get('checked'));
 
             // prepare character pool
             var groupList = [];
@@ -217,6 +220,10 @@ require([
                 }
             }
             var charPool = groupList.join('');
+            // exclude specified characters
+            array.forEach((value.exclude || '').split(''), function(c) {
+                charPool = charPool.replace(c, '');
+            });
 
             // generate random word
             var result = [];
@@ -238,6 +245,8 @@ require([
         registry.byId('upperCheck').on('change', regenerate);
         symbolCheck.on('change', regenerate);
         symbolInput.on('change', regenerate);
+        excludeCheck.on('change', regenerate);
+        excludeInput.on('change', regenerate);
         // select function
         var textNode = wordText.domNode;
         function selectWholeText() {
